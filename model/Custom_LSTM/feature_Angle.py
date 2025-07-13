@@ -154,7 +154,7 @@ def main():
         for batch_data, batch_mask, batch_labels in train_loader:
             batch_data, batch_mask, batch_labels = batch_data.to(model.device), batch_mask.to(model.device), batch_labels.to(model.device)
             optimizer.zero_grad()
-            outputs = model(batch_data, attn_mask=batch_mask)  # 마스크는 LSTM에서 사용 안 함, 유지
+            outputs = model(batch_data, attn_mask=batch_mask) 
             loss = criterion(outputs, batch_labels)
             loss.backward()
             optimizer.step()

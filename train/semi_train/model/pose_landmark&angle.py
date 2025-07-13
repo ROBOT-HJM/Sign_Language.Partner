@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from datetime import datetime
 
-# 디버깅 로그 파일 설정
+
 debug_log_file = "debug_log.txt"
 def log_debug(message):
     """디버깅 메시지를 콘솔과 파일에 기록"""
@@ -20,7 +20,7 @@ def log_debug(message):
         f.write(log_message)
 
 class CustomLSTM(nn.Module):
-    def __init__(self, input_dim=99, hidden_size=64, num_layers=1, num_classes=15, dropout=0.5):
+    def __init__(self, input_dim=129, hidden_size=64, num_layers=1, num_classes=15, dropout=0.5):
         super(CustomLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
@@ -40,15 +40,14 @@ class CustomLSTM(nn.Module):
         
         # LSTM forward
         output, (hn, cn) = self.lstm(x, (h0, c0))  # output: [batch_size, seq_length, hidden_size]
-        
-    
+   
         output = output[:, -1, :]  # [batch_size, hidden_size]
         output = self.dropout(output)
         output = self.fc(output)  # [batch_size, num_classes]
         return output
 
 def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
-  
+ 
     if not os.path.exists(csv_path):
         log_debug(f"CSV 파일 {csv_path}가 존재하지 않습니다.")
         return None, None, None, None
@@ -70,10 +69,10 @@ def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
         
         try:
             sequence = np.load(file_path)
-            if sequence.shape != (max_seq_length, 99):
-                log_debug(f"파일 {file_path}의 형상 {sequence.shape}이 [{max_seq_length}, 99]이 아닙니다.")
+            if sequence.shape != (max_seq_length, 129):
+                log_debug(f"파일 {file_path}의 형상 {sequence.shape}이 [{max_seq_length}, 129]이 아닙니다.")
                 continue
-            # 정규화
+            # 정규화 (손가락 각도 포함)
             sequence = (sequence - sequence.min()) / (sequence.max() - sequence.min() + 1e-8)
         except Exception as e:
             log_debug(f"파일 {file_path} 로드 중 오류: {e}")
@@ -92,7 +91,7 @@ def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
         log_debug("데이터를 로드하지 못했습니다.")
         return None, None, None, None
     
-    data = torch.stack(data)  # [num_samples, max_seq_length, 99]
+    data = torch.stack(data)  # [num_samples, max_seq_length, 129]
     labels = torch.tensor(labels, dtype=torch.long)
     lengths = torch.tensor(lengths, dtype=torch.int64)
     mask = torch.arange(max_seq_length).expand(len(lengths), max_seq_length) < lengths.unsqueeze(1)
@@ -102,8 +101,8 @@ def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
     return data, mask, labels, lengths
 
 def main():
-    sequence_dir = r"E:\학부연구생 과제_2025\hand_sentence\sentence_dataset_15\pose_label"
-    csv_path = r"E:\학부연구생 과제_2025\hand_sentence\sentence_dataset_15\pose_label\labels.csv"
+    sequence_dir = r"E:\학부연구생 과제_2025\hand_sentence\sentence_dataset_15\pose_angle_label"
+    csv_path = r"E:\학부연구생 과제_2025\hand_sentence\sentence_dataset_15\pose_angle_label\pose_angle_label.csv"
     max_seq_length = 130
     batch_size = 4
     num_epochs = 200
@@ -146,7 +145,7 @@ def main():
     
     # 모델 정의
     model = CustomLSTM(
-        input_dim=99,
+        input_dim=129,
         hidden_size=hidden_size,
         num_layers=num_layers,
         num_classes=num_classes,
@@ -170,7 +169,7 @@ def main():
         for batch_data, batch_mask, batch_labels in train_loader:
             batch_data, batch_mask, batch_labels = batch_data.to(model.device), batch_mask.to(model.device), batch_labels.to(model.device)
             optimizer.zero_grad()
-            outputs = model(batch_data, attn_mask=batch_mask)
+            outputs = model(batch_data, attn_mask=batch_mask)  # 마스크는 LSTM에서 사용 안 함, 유지
             loss = criterion(outputs, batch_labels)
             loss.backward()
             optimizer.step()
@@ -178,7 +177,7 @@ def main():
         train_loss /= len(train_loader)
         
         # 검증
-        model.eval() 
+        model.eval()
         val_loss = 0
         val_preds = []
         val_true = []
@@ -211,4 +210,4 @@ def main():
     log_debug(f"Final Validation Accuracy: {val_accuracy:.4f}")
 
 if __name__ == "__main__":
-    main()
+    main()v

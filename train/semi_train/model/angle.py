@@ -21,21 +21,19 @@ class CustomLSTM(nn.Module):
         self.to(self.device)
 
     def forward(self, x, attn_mask=None):
-        # x: [batch_size, seq_length, input_dim]
+        
         batch_size = x.size(0)
-        # 초기 hidden 및 cell 상태
         h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
         c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
         
         # LSTM forward
         output, (hn, cn) = self.lstm(x, (h0, c0))  # output: [batch_size, seq_length, hidden_size]
        
-        output = output[:, -1, :]  # [batch_size, hidden_size]
+        output = output[:, -1, :] 
         output = self.dropout(output)
-        output = self.fc(output)  # [batch_size, num_classes]
+        output = self.fc(output)  
         return output
 
-# 데이터셋 로드 함수 (CSV 기반)
 def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
 
     if not os.path.exists(csv_path):
@@ -81,7 +79,7 @@ def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
         print("데이터를 로드하지 못했습니다.")
         return None, None, None, None
     
-    data = torch.stack(data)  # [num_samples, max_seq_length, 30]
+    data = torch.stack(data) 
     labels = torch.tensor(labels, dtype=torch.long)
     lengths = torch.tensor(lengths, dtype=torch.int64)
     mask = torch.arange(max_seq_length).expand(len(lengths), max_seq_length) < lengths.unsqueeze(1)
@@ -90,7 +88,6 @@ def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
     print(f"Data shape: {data.shape}, Mask shape: {mask.shape}, Labels shape: {labels.shape}")
     return data, mask, labels, lengths
 
-# 메인 실행
 def main():
     sequence_dir = r"E:\학부연구생 과제_2025\hand_sentence\sentence_dataset_15\sequence_label"
     csv_path = r"E:\학부연구생 과제_2025\hand_sentence\sentence_dataset_15\sequence_label\labels3.csv"
@@ -103,7 +100,7 @@ def main():
     num_classes = 15
     dropout = 0.5
     
-    # 데이터 로드
+ 
     data, mask, labels, lengths = load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length)
     
     if data is None:

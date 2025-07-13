@@ -33,16 +33,16 @@ class CustomLSTM(nn.Module):
     def forward(self, x, attn_mask=None):
         # x: [batch_size, seq_length, input_dim]
         batch_size = x.size(0)
-        # 초기 hidden 및 cell 상태
+
         h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
         c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
         
         # LSTM forward
-        output, (hn, cn) = self.lstm(x, (h0, c0))  # output: [batch_size, seq_length, hidden_size]
+        output, (hn, cn) = self.lstm(x, (h0, c0)) 
       
-        output = output[:, -1, :]  # [batch_size, hidden_size]
+        output = output[:, -1, :]  
         output = self.dropout(output)
-        output = self.fc(output)  # [batch_size, num_classes]
+        output = self.fc(output)  
         return output
 
 def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
@@ -90,7 +90,7 @@ def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
         log_debug("데이터를 로드하지 못했습니다.")
         return None, None, None, None
     
-    data = torch.stack(data)  # [num_samples, max_seq_length, 99]
+    data = torch.stack(data)
     labels = torch.tensor(labels, dtype=torch.long)
     lengths = torch.tensor(lengths, dtype=torch.int64)
     mask = torch.arange(max_seq_length).expand(len(lengths), max_seq_length) < lengths.unsqueeze(1)

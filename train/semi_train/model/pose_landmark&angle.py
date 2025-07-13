@@ -12,7 +12,6 @@ from datetime import datetime
 
 debug_log_file = "debug_log.txt"
 def log_debug(message):
-    """디버깅 메시지를 콘솔과 파일에 기록"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_message = f"[{timestamp}] {message}\n"
     print(log_message.strip())
@@ -32,14 +31,13 @@ class CustomLSTM(nn.Module):
         self.to(self.device)
 
     def forward(self, x, attn_mask=None):
-        # x: [batch_size, seq_length, input_dim]
+    
         batch_size = x.size(0)
-        # 초기 hidden 및 cell 상태
         h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
         c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
         
         # LSTM forward
-        output, (hn, cn) = self.lstm(x, (h0, c0))  # output: [batch_size, seq_length, hidden_size]
+        output, (hn, cn) = self.lstm(x, (h0, c0)) 
    
         output = output[:, -1, :]  # [batch_size, hidden_size]
         output = self.dropout(output)
@@ -79,7 +77,7 @@ def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
             continue
         
         seq_length = np.any(sequence != 0, axis=1).sum()
-        if seq_length < 20:  # 최소 길이 필터링
+        if seq_length < 20:  
             log_debug(f"파일 {file_path}의 유효 길이 {seq_length}가 너무 짧습니다.")
             continue
         
@@ -91,7 +89,7 @@ def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
         log_debug("데이터를 로드하지 못했습니다.")
         return None, None, None, None
     
-    data = torch.stack(data)  # [num_samples, max_seq_length, 129]
+    data = torch.stack(data)  
     labels = torch.tensor(labels, dtype=torch.long)
     lengths = torch.tensor(lengths, dtype=torch.int64)
     mask = torch.arange(max_seq_length).expand(len(lengths), max_seq_length) < lengths.unsqueeze(1)
@@ -112,7 +110,7 @@ def main():
     num_classes = 15
     dropout = 0.5
     
-    # 디버깅 로그 파일 초기화
+
     if os.path.exists(debug_log_file):
         os.remove(debug_log_file)
     

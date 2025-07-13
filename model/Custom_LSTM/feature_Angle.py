@@ -23,14 +23,11 @@ class CustomLSTM(nn.Module):
     def forward(self, x, attn_mask=None):
         # x: [batch_size, seq_length, input_dim]
         batch_size = x.size(0)
-        # 초기 hidden 및 cell 상태
         h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
         c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
         
         # LSTM forward
         output, (hn, cn) = self.lstm(x, (h0, c0))  # output: [batch_size, seq_length, hidden_size]
-        
-        # 마지막 타임스텝의 출력 사용
         output = output[:, -1, :]  # [batch_size, hidden_size]
         output = self.dropout(output)
         output = self.fc(output)  # [batch_size, num_classes]
@@ -38,16 +35,7 @@ class CustomLSTM(nn.Module):
 
 # 데이터셋 로드 함수 (CSV 기반)
 def load_dataset_for_lstm(sequence_dir, csv_path, max_seq_length=130):
-    """
-    CSV 파일과 시퀀스 파일을 로드하여 LSTM 입력 준비.
     
-    Args:
-        sequence_dir (str): 시퀀스 파일 디렉토리
-        csv_path (str): labels.csv 파일 경로
-        max_seq_length (int): 최대 시퀀스 길이
-    Returns:
-        tuple: (data [num_samples, max_seq_length, 30], mask, labels, lengths)
-    """
     if not os.path.exists(csv_path):
         print(f"CSV 파일 {csv_path}가 존재하지 않습니다.")
         return None, None, None, None
